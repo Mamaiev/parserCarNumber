@@ -1,0 +1,89 @@
+package ua;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class ParserSiteService {
+
+    public static void main(String[] args) throws IOException {
+        System.out.println(System.getProperties());
+        Document doc = null;
+        try {
+            doc = Jsoup.parse(new File("/Users/mac/IdeaProjects/parserCarNumber/src/main/resources/htmlGOV.rtf"), "UTF-8");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        List<CarNumber> carNumber = new ArrayList<CarNumber>();
+        Elements temp;
+        for (Element element : doc.select("tbody").eq(1).select("tr")) {
+            temp = element.select("td");
+            CarNumber number = new CarNumber();
+            try {
+                number.setNumber(temp.get(0).text());
+                number.setPrice(Integer.valueOf(temp.get(1).text()));
+                number.setServiceCenter(temp.get(2).text());
+                carNumber.add(number);
+            } catch (IndexOutOfBoundsException e) {
+                System.out.println("Number " + temp.text() + " doesn't have data.");
+            }
+        }
+        for (CarNumber car : carNumber) {
+            System.out.println(car);
+
+        }
+
+        System.out.println(doc.select("tbody").eq(1).html());
+
+//        try {
+//            Document doc = Jsoup.connect("https://opendata.hsc.gov.ua/check-leisure-license-plates/")
+//                    .validateTLSCertificates(false)
+//                    .ignoreContentType(true)
+//                    .data(data())
+//                    .data("region", "19")
+//                    .data("type_venichle", "light_car_and_truck")
+//                    .data("tsc", "Весь регіон")
+//                    .data("number", "")
+//                    .timeout(0)
+//                    .post();
+//            System.out.println(doc);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+    }
+
+    public static Map<String, String> data() {
+        Map res = new HashMap();
+        res.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
+        res.put("Accept-Encoding", "gzip, deflate, br");
+        res.put("Accept-Language", "en-US,en;q=0.9,uk;q=0.8");
+        res.put("Cache-Control", "max-age=0");
+        res.put("Connection", "keep-alive");
+        res.put("Content-Length", "202");
+        res.put("Content-Type", "application/x-www-form-urlencoded");
+        res.put("Host", "opendata.hsc.gov.ua");
+        res.put("Origin", "https://opendata.hsc.gov.ua");
+        res.put("Referer", "https://opendata.hsc.gov.ua/check-leisure-license-plates/");
+        res.put("Sec-Ch-Ua", "\"Chromium\";v=\"118\", \"Google Chrome\";v=\"118\", \"Not=A?Brand\";v=\"99\"");
+        res.put("Sec-Ch-Ua-Mobile", "?0");
+        res.put("Sec-Ch-Ua-Platform", "\"macOS\"");
+        res.put("Sec-Fetch-Dest", "document");
+        res.put("Sec-Fetch-Mode", "navigate");
+        res.put("Sec-Fetch-Site", "same-origin");
+        res.put("Sec-Fetch-User", "?1");
+        res.put("Upgrade-Insecure-Requests", "1");
+        res.put("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36");
+
+        return res;
+    }
+}
