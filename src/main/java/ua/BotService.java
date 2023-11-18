@@ -9,6 +9,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Service
@@ -31,6 +33,7 @@ public class BotService extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         LocalDateTime timeOfProcessing = LocalDateTime.now();
+        Instant start = Instant.now();
         Long chatId = update.getMessage().getChatId();
         String inputText = update.getMessage().getText();
 
@@ -40,18 +43,18 @@ public class BotService extends TelegramLongPollingBot {
             SendMessage message = new SendMessage();
             try {
                 message.setChatId(chatId);
-                message.setText("Hello. Start parse.");  //TODO create 2 stream for sending message and parse. For send 2 diff message
+//                message.setText("Hello. Start parse.");  //TODO create 2 stream for sending message and parse. For send 2 diff message
 
                 numberRepository.saveAll(parserSiteService.pullNumbers()); // change signature of method
                 synchronize.setSuccess(true);
-
+                message.setText("Time of processing: " + Duration.between(start, Instant.now()).getSeconds());
                 execute(message);
             } catch (TelegramApiException | IOException e) {
                 synchronize.setSuccess(false);
                 e.printStackTrace();
             } finally {
                 synchronizeRepository.save(synchronize);
-                message.setText(message.getText() + " Time of processing: " + (LocalDateTime.now().getSecond() - timeOfProcessing.getSecond()));
+
             }
         }
     }

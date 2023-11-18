@@ -9,8 +9,6 @@ import java.util.Objects;
 public class CarNumber {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
     private String number;
     private Integer price;
     private String serviceCenter;
@@ -21,7 +19,6 @@ public class CarNumber {
     @Override
     public String toString() {
         return "CarNumber{" +
-                "id=" + id +
                 ", number='" + number + '\'' +
                 ", price=" + price +
                 ", serviceCenter='" + serviceCenter + '\'' +
@@ -29,23 +26,6 @@ public class CarNumber {
                 ", changed=" + changed +
                 ", deleted=" + deleted +
                 '}';
-    }
-
-    public CarNumber() {
-    }
-
-//    public CarNumber(String number, Integer price, String serviceCenter) {
-//        this.number = number;
-//        this.price = price;
-//        this.serviceCenter = serviceCenter;
-//    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public String getNumber() {
