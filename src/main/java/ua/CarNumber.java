@@ -2,7 +2,6 @@ package ua;
 
 import jakarta.persistence.*;
 
-@Table(name = "car_number")
 @Entity
 public class CarNumber {
 

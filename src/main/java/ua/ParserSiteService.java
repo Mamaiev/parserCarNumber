@@ -1,5 +1,8 @@
 package ua;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -8,23 +11,77 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class ParserSiteService {
 
-    public static void main(String[] args) throws IOException {
-        System.out.println(System.getProperties());
+    private Log log = LogFactory.getLog(ParserSiteService.class);
+
+    public List<CarNumber> pullNumbers() throws IOException {
+        Connection.Response site = parseSite();
+        log.info(site.statusMessage() + site.statusCode());
+        if (site.statusCode() == 504) {
+            log.error("Error on server side. Status code 504. " + site.statusMessage());
+            return Collections.emptyList();
+        }
+        return convertResponse(site);
+    }
+
+    private Connection.Response parseSite() throws IOException {
+
+        Connection.Response response = Jsoup.connect("https://opendata.hsc.gov.ua/check-leisure-license-plates/")
+                .validateTLSCertificates(false)
+                .ignoreContentType(true)
+//                    .data(data())
+                .data("region", "19")
+                .data("type_venichle", "light_car_and_truck")
+                .data("tsc", "Весь регіон")
+                .data("number", "")
+                .timeout(0)
+                .method(Connection.Method.POST)
+                .execute();
+
+        return response;
+    }
+
+    private List<CarNumber> convertResponse(Connection.Response response) throws IOException {
+        Document doc = response.parse();
+        List<CarNumber> carNumbers = new ArrayList<>();
+
+        try {
+            Elements temp;
+            for (Element element : doc.select("tbody").eq(1).select("tr")) {
+                temp = element.select("td");
+                CarNumber number = new CarNumber();
+                try {
+                    number.setNumber(temp.get(0).text());
+                    number.setPrice(Integer.valueOf(temp.get(1).text()));
+                    number.setServiceCenter(temp.get(2).text());
+                    System.out.println(number);
+                    carNumbers.add(number);
+                } catch (IndexOutOfBoundsException e) {
+                    System.out.println("Number " + temp.text() + " doesn't have data.");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return carNumbers;
+    }
+
+    private void checkStatusCode(Connection.Response response) {
+        response.statusCode();
+    }
+
+    private List<CarNumber> parseSiteTest(String str) {
         Document doc = null;
         try {
             doc = Jsoup.parse(new File("/Users/mac/IdeaProjects/parserCarNumber/src/main/resources/htmlGOV.rtf"), "UTF-8");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        List<CarNumber> carNumber = new ArrayList<CarNumber>();
+        List<CarNumber> carNumbers = new ArrayList<CarNumber>();
         Elements temp;
         for (Element element : doc.select("tbody").eq(1).select("tr")) {
             temp = element.select("td");
@@ -33,36 +90,19 @@ public class ParserSiteService {
                 number.setNumber(temp.get(0).text());
                 number.setPrice(Integer.valueOf(temp.get(1).text()));
                 number.setServiceCenter(temp.get(2).text());
-                carNumber.add(number);
+                carNumbers.add(number);
             } catch (IndexOutOfBoundsException e) {
                 System.out.println("Number " + temp.text() + " doesn't have data.");
             }
         }
-        for (CarNumber car : carNumber) {
+        for (CarNumber car : carNumbers) {
             System.out.println(car);
 
         }
-
-        System.out.println(doc.select("tbody").eq(1).html());
-
-//        try {
-//            Document doc = Jsoup.connect("https://opendata.hsc.gov.ua/check-leisure-license-plates/")
-//                    .validateTLSCertificates(false)
-//                    .ignoreContentType(true)
-//                    .data(data())
-//                    .data("region", "19")
-//                    .data("type_venichle", "light_car_and_truck")
-//                    .data("tsc", "Весь регіон")
-//                    .data("number", "")
-//                    .timeout(0)
-//                    .post();
-//            System.out.println(doc);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        return carNumbers;
     }
 
-    public static Map<String, String> data() {
+    private static Map<String, String> data() {
         Map res = new HashMap();
         res.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
         res.put("Accept-Encoding", "gzip, deflate, br");

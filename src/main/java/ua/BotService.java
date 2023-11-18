@@ -8,15 +8,24 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
+
 
 @Service
 public class BotService extends TelegramLongPollingBot {
 
     private final BotConfig botConfig;
+    private ParserSiteService parserSiteService;
+    private CarNumberRepository numberRepository;
+    private SynchronizeRepository synchronizeRepository;
 
-    public BotService(BotConfig botConfig) {
+    public BotService(BotConfig botConfig, ParserSiteService parserSiteService, CarNumberRepository numberRepository, SynchronizeRepository synchronizeRepository) {
         super(botConfig.getBotToken());
         this.botConfig = botConfig;
+        this.parserSiteService = parserSiteService;
+        this.numberRepository = numberRepository;
+        this.synchronizeRepository = synchronizeRepository;
         registerBot();
     }
 
@@ -26,14 +35,23 @@ public class BotService extends TelegramLongPollingBot {
         Long chatId = update.getMessage().getChatId();
         String inputText = update.getMessage().getText();
 
-        if (!inputText.isEmpty()) {
-            SendMessage message = new SendMessage();
-            message.setChatId(chatId);
-            message.setText("Hello. This is a bot!!!");
+        if (inputText.equals("sync")) {
+            Synchronize synchronize = new Synchronize();
+            synchronize.setSynchronizeTime(LocalDateTime.now());
             try {
+                SendMessage message = new SendMessage();
+                message.setChatId(chatId);
+                message.setText("Hello. Start parse at " + LocalDateTime.now() );  //TODO create 2 stream for sending message and parse. For send 2 diff message
+
+                numberRepository.saveAll(parserSiteService.pullNumbers()); // change signature of method
+                synchronize.setSuccess(true);
+
                 execute(message);
-            } catch (TelegramApiException e) {
+            } catch (TelegramApiException | IOException e) {
                 e.printStackTrace();
+                synchronize.setSuccess(false);
+            } finally {
+                synchronizeRepository.save(synchronize);
             }
         }
     }
