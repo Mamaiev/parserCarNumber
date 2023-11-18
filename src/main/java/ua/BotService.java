@@ -11,7 +11,6 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
-
 @Service
 public class BotService extends TelegramLongPollingBot {
 
@@ -31,27 +30,28 @@ public class BotService extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-
+        LocalDateTime timeOfProcessing = LocalDateTime.now();
         Long chatId = update.getMessage().getChatId();
         String inputText = update.getMessage().getText();
 
         if (inputText.equals("sync")) {
             Synchronize synchronize = new Synchronize();
             synchronize.setSynchronizeTime(LocalDateTime.now());
+            SendMessage message = new SendMessage();
             try {
-                SendMessage message = new SendMessage();
                 message.setChatId(chatId);
-                message.setText("Hello. Start parse at " + LocalDateTime.now() );  //TODO create 2 stream for sending message and parse. For send 2 diff message
+                message.setText("Hello. Start parse.");  //TODO create 2 stream for sending message and parse. For send 2 diff message
 
                 numberRepository.saveAll(parserSiteService.pullNumbers()); // change signature of method
                 synchronize.setSuccess(true);
 
                 execute(message);
             } catch (TelegramApiException | IOException e) {
-                e.printStackTrace();
                 synchronize.setSuccess(false);
+                e.printStackTrace();
             } finally {
                 synchronizeRepository.save(synchronize);
+                message.setText(message.getText() + " Time of processing: " + (LocalDateTime.now().getSecond() - timeOfProcessing.getSecond()));
             }
         }
     }
