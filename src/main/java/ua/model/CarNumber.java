@@ -1,4 +1,4 @@
-package ua;
+package ua.model;
 
 import jakarta.persistence.*;
 
@@ -9,6 +9,8 @@ import java.util.Objects;
 public class CarNumber {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
     private String number;
     private Integer price;
     private String serviceCenter;
@@ -16,16 +18,12 @@ public class CarNumber {
     private LocalDateTime changed;
     private boolean deleted;
 
-    @Override
-    public String toString() {
-        return "CarNumber{" +
-                ", number='" + number + '\'' +
-                ", price=" + price +
-                ", serviceCenter='" + serviceCenter + '\'' +
-                ", added=" + added +
-                ", changed=" + changed +
-                ", deleted=" + deleted +
-                '}';
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getNumber() {
@@ -81,12 +79,17 @@ public class CarNumber {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CarNumber carNumber = (CarNumber) o;
-        return number.equals(carNumber.number) &&
-                price.equals(carNumber.price);
+        return number.equals(carNumber.number);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(number, price);
+        return Objects.hash(number);
+    }
+
+    private boolean isChanged(CarNumber car) {
+        return this.getNumber().equals(car.getNumber())
+                && this.getPrice().equals(car.getPrice())
+                && this.getServiceCenter().equals(car.getServiceCenter());
     }
 }

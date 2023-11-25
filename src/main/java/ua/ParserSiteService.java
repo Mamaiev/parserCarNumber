@@ -8,6 +8,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
+import ua.model.CarNumber;
+import ua.model.Region;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +37,7 @@ public class ParserSiteService {
                 .validateTLSCertificates(false)
                 .ignoreContentType(true)
 //                    .data(data())
-                .data("region", "19")
+                .data("region", String.valueOf(Region.Kyi.getCode()))
                 .data("type_venichle", "light_car_and_truck")
                 .data("tsc", "Весь регіон")
                 .data("number", "")
