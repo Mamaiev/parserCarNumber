@@ -2,6 +2,7 @@ package ua;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -42,31 +43,18 @@ public class BotService extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        Instant start = Instant.now();
-//        update();
         Long chatId = update.getMessage().getChatId();
         String inputText = update.getMessage().getText();
         //TODO: create scheduler for example couple times per day switch on and check update
         if (inputText.equals("sync")) {
-            Synchronize synchronize = new Synchronize();
-            synchronize.setSynchronizeTime(LocalDateTime.now());
             SendMessage message = new SendMessage();
+            message.setChatId(chatId);
+            message.setText("Hello. Start parse.");  //TODO create 2 stream for sending message and parse. For send 2 diff message
+            message.setText("dddddd");
             try {
-                message.setChatId(chatId);
-                message.setText("Hello. Start parse.");  //TODO create 2 stream for sending message and parse. For send 2 diff message
-                List<CarNumber> listOfNumbers = parserSiteService.pullNumbers();
-                softDeleteCarNumber();
-                numberRepository.saveAll(listOfNumbers); // change signature of method
-                synchronize.setSuccess(true);
-                message.setText(
-                        "Time of processing: " + Duration.between(start, Instant.now()).getSeconds() + " \n"
-                + "Processed " + listOfNumbers.size() + " car numbers");
                 execute(message);
-            } catch (TelegramApiException | IOException e) {
-                synchronize.setSuccess(false);
+            } catch (TelegramApiException e) {
                 e.printStackTrace();
-            } finally {
-                synchronizeRepository.save(synchronize);
             }
         }
     }
@@ -78,11 +66,27 @@ public class BotService extends TelegramLongPollingBot {
 //        return null;
 //    }
 
-//    @Scheduled(cron = "58 8/11 * * *")
-//    private String update(){
-//        log.info("Scheduled is work;");
-//        return "";
-//    }
+    //    @Scheduled(cron = "58 8/11 * * *") //for prod
+    @Scheduled(cron = "1/1 * * * * *") //for test
+    private void update() {
+        log.info("Scheduled is work;");
+        Instant start = Instant.now();
+        Synchronize synchronize = new Synchronize();
+        synchronize.setSynchronizeTime(LocalDateTime.now());
+        try {
+            List<CarNumber> listOfNumbers = parserSiteService.pullNumbers();
+            softDeleteCarNumber();
+            numberRepository.saveAll(listOfNumbers); // change signature of method
+            synchronize.setSuccess(true);
+            log.info("Time of processing: " + Duration.between(start, Instant.now()).getSeconds() + " \n"
+                    + "Processed " + listOfNumbers.size() + " car numbers");
+        } catch (IOException e) {
+            synchronize.setSuccess(false);
+            e.printStackTrace();
+        } finally {
+            synchronizeRepository.save(synchronize);
+        }
+    }
 
     @Override
     public String getBotUsername() {

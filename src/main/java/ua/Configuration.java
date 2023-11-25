@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableJpaRepositories
-//@EnableScheduling
+@EnableScheduling
 public class Configuration {
 
     public static void main(String[] args) {
