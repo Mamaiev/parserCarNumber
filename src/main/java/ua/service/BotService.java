@@ -1,8 +1,7 @@
-package ua;
+package ua.service;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -12,10 +11,12 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+import ua.BotConfig;
 import ua.db.CarNumberRepository;
 import ua.db.SynchronizeRepository;
 import ua.model.CarNumber;
 import ua.model.Synchronize;
+import ua.model.UserRequest;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -33,31 +34,41 @@ public class BotService extends TelegramLongPollingBot {
     private ParserSiteService parserSiteService;
     private CarNumberRepository numberRepository;
     private SynchronizeRepository synchronizeRepository;
+    private Dispatcher dispatcher;
 
-    public BotService(BotConfig botConfig, ParserSiteService parserSiteService, CarNumberRepository numberRepository, SynchronizeRepository synchronizeRepository) {
+    public BotService(BotConfig botConfig, ParserSiteService parserSiteService, CarNumberRepository numberRepository, SynchronizeRepository synchronizeRepository, Dispatcher dispatcher) {
         super(botConfig.getBotToken());
         this.botConfig = botConfig;
         this.parserSiteService = parserSiteService;
         this.numberRepository = numberRepository;
         this.synchronizeRepository = synchronizeRepository;
+        this.dispatcher = dispatcher;
         registerBot();
     }
 
     @Override
     public void onUpdateReceived(Update update) {
         SendMessage message = new SendMessage();
-        if (update.hasMessage()) {
+        if (update.hasMessage() && update.getMessage().hasText()) {
+            Long chatId = update.getMessage().getChatId();
             String inputText = update.getMessage().getText();
             if (!inputText.isEmpty()) {
-                message.setReplyMarkup(sendInlineKeyBoardMessage());
-                Long chatId = update.getMessage().getChatId();
-                message.setChatId(chatId);
-                message.setText("What do you want?");
-                try {
-                    execute(message);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
+//                message.setReplyMarkup(sendInlineKeyBoardMessage());
+//                message.setChatId(chatId);
+//                message.setText("What do you want?");
+//                try {
+//                    execute(message);
+//                } catch (TelegramApiException e) {
+//                    e.printStackTrace();
+//                }
+            }
+            UserRequest userRequest = new UserRequest();
+            userRequest.setUpdate(update);
+            userRequest.setChatId(chatId);
+            boolean dispatched = dispatcher.dispatch(userRequest);
+
+            if (!dispatched) {
+                log.warn("Unexpected update from user");
             }
         } else if (update.hasCallbackQuery()) {
             try {
@@ -73,18 +84,18 @@ public class BotService extends TelegramLongPollingBot {
     public InlineKeyboardMarkup sendInlineKeyBoardMessage() {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
-//        InlineKeyboardButton inlineKeyboardButton2 = new InlineKeyboardButton();
+        InlineKeyboardButton inlineKeyboardButton2 = new InlineKeyboardButton();
         inlineKeyboardButton1.setText("Check car number");
         inlineKeyboardButton1.setCallbackData("Please, wrote a car number which you want to check...");
-//        inlineKeyboardButton2.setText("Button 2");
-//        inlineKeyboardButton2.setCallbackData("Button 2 has been pressed");
+        inlineKeyboardButton2.setText("Button 2");
+        inlineKeyboardButton2.setCallbackData("Button 2 has been pressed");
         List<InlineKeyboardButton> keyboardButtonsRow1 = new ArrayList<>();
-//        List<InlineKeyboardButton> keyboardButtonsRow2 = new ArrayList<>();
+        List<InlineKeyboardButton> keyboardButtonsRow2 = new ArrayList<>();
         keyboardButtonsRow1.add(inlineKeyboardButton1);
-//        keyboardButtonsRow2.add(inlineKeyboardButton2);
+        keyboardButtonsRow2.add(inlineKeyboardButton2);
         List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
         rowList.add(keyboardButtonsRow1);
-//        rowList.add(keyboardButtonsRow2);
+        rowList.add(keyboardButtonsRow2);
         inlineKeyboardMarkup.setKeyboard(rowList);
         return inlineKeyboardMarkup;
     }
@@ -97,7 +108,7 @@ public class BotService extends TelegramLongPollingBot {
 //        return null;
 //    }
 
-    @Scheduled(cron = "58 8/11 * * * *") //for prod
+    //    @Scheduled(cron = "58 8/11 * * * *") //for prod
 //    @Scheduled(cron = "1/1 * * * * *") //for test
     private void process() {
         update();

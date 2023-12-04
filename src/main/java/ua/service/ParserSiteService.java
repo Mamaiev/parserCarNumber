@@ -1,4 +1,4 @@
-package ua;
+package ua.service;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,7 +37,7 @@ public class ParserSiteService {
                 .validateTLSCertificates(false)
                 .ignoreContentType(true)
 //                    .data(data())
-                .data("region", String.valueOf(Region.Kyi.getCode()))
+                .data("region", String.valueOf(Region.KyC.getCode()))
                 .data("type_venichle", "light_car_and_truck")
                 .data("tsc", "Весь регіон")
                 .data("number", "")

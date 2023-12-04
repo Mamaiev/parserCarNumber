@@ -6,4 +6,6 @@ import ua.model.CarNumber;
 
 @Repository
 public interface CarNumberRepository extends CrudRepository<CarNumber, Integer> {
+
+    boolean existsByNumber(String number);
 }
