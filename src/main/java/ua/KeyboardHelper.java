@@ -23,7 +23,7 @@ public class KeyboardHelper {
 
         return ReplyKeyboardMarkup.builder()
                 .keyboard(Collections.singleton(row2))
-                .resizeKeyboard(true)
+                .resizeKeyboard(false) // need fix displaying button on iPad/iPhone
                 .oneTimeKeyboard(false)
                 .build();
     }

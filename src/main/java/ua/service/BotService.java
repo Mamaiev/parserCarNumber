@@ -7,12 +7,11 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import ua.BotConfig;
 import ua.db.CarNumberRepository;
+import ua.db.ChasingNumberRepository;
 import ua.db.SynchronizeRepository;
 import ua.model.CarNumber;
 import ua.model.Synchronize;
@@ -22,7 +21,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -34,14 +32,16 @@ public class BotService extends TelegramLongPollingBot {
     private ParserSiteService parserSiteService;
     private CarNumberRepository numberRepository;
     private SynchronizeRepository synchronizeRepository;
+    private final ChasingNumberRepository chasingNumberRepository;
     private Dispatcher dispatcher;
 
-    public BotService(BotConfig botConfig, ParserSiteService parserSiteService, CarNumberRepository numberRepository, SynchronizeRepository synchronizeRepository, Dispatcher dispatcher) {
+    public BotService(BotConfig botConfig, ParserSiteService parserSiteService, CarNumberRepository numberRepository, SynchronizeRepository synchronizeRepository, ChasingNumberRepository chasingNumberRepository, Dispatcher dispatcher) {
         super(botConfig.getBotToken());
         this.botConfig = botConfig;
         this.parserSiteService = parserSiteService;
         this.numberRepository = numberRepository;
         this.synchronizeRepository = synchronizeRepository;
+        this.chasingNumberRepository = chasingNumberRepository;
         this.dispatcher = dispatcher;
         registerBot();
     }
@@ -52,15 +52,12 @@ public class BotService extends TelegramLongPollingBot {
         if (update.hasMessage() && update.getMessage().hasText()) {
             Long chatId = update.getMessage().getChatId();
             String inputText = update.getMessage().getText();
-            if (!inputText.isEmpty()) {
-//                message.setReplyMarkup(sendInlineKeyBoardMessage());
-//                message.setChatId(chatId);
-//                message.setText("What do you want?");
-//                try {
-//                    execute(message);
-//                } catch (TelegramApiException e) {
-//                    e.printStackTrace();
-//                }
+            if (inputText.equals("cu")) {
+                try {
+                    process();
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
             }
             UserRequest userRequest = new UserRequest();
             userRequest.setUpdate(update);
@@ -81,26 +78,6 @@ public class BotService extends TelegramLongPollingBot {
         }
     }
 
-    public InlineKeyboardMarkup sendInlineKeyBoardMessage() {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
-        InlineKeyboardButton inlineKeyboardButton2 = new InlineKeyboardButton();
-        inlineKeyboardButton1.setText("Check car number");
-        inlineKeyboardButton1.setCallbackData("Please, wrote a car number which you want to check...");
-        inlineKeyboardButton2.setText("Button 2");
-        inlineKeyboardButton2.setCallbackData("Button 2 has been pressed");
-        List<InlineKeyboardButton> keyboardButtonsRow1 = new ArrayList<>();
-        List<InlineKeyboardButton> keyboardButtonsRow2 = new ArrayList<>();
-        keyboardButtonsRow1.add(inlineKeyboardButton1);
-        keyboardButtonsRow2.add(inlineKeyboardButton2);
-        List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
-        rowList.add(keyboardButtonsRow1);
-        rowList.add(keyboardButtonsRow2);
-        inlineKeyboardMarkup.setKeyboard(rowList);
-        return inlineKeyboardMarkup;
-    }
-
-
 //    TODO: maybe need do it with some paging, we should pull all date in one query because their could be millions entities
 //    @Transactional
 //    List<CarNumber> update(List<CarNumber> pulled) {
@@ -110,7 +87,7 @@ public class BotService extends TelegramLongPollingBot {
 
     //    @Scheduled(cron = "58 8/11 * * * *") //for prod
 //    @Scheduled(cron = "1/1 * * * * *") //for test
-    private void process() {
+    private void process() throws TelegramApiException {
         update();
         checkAvailable();
     }
@@ -122,7 +99,7 @@ public class BotService extends TelegramLongPollingBot {
         synchronize.setSynchronizeTime(LocalDateTime.now());
         try {
             List<CarNumber> listOfNumbers = parserSiteService.pullNumbers();
-            softDeleteCarNumber();
+            numberRepository.findAll();
             numberRepository.saveAll(listOfNumbers); // change signature of method
             synchronize.setSuccess(true);
             log.info("Time of processing: " + Duration.between(start, Instant.now()).getSeconds() + " \n"
@@ -135,9 +112,20 @@ public class BotService extends TelegramLongPollingBot {
         }
     }
 
-    private void checkAvailable() {
-        //TODO: go to db pull all number which tracking and check if exist in car_number.
-        // if exist -> send message in bot
+    private void checkAvailable() throws TelegramApiException {
+        List<Long> listOfUsers = chasingNumberRepository.findDistinctByUserId();
+        log.info("Users: " + listOfUsers);
+        List<String> listOfNumbers;
+        for (Long userId : listOfUsers) {
+            listOfNumbers = chasingNumberRepository.findNumberByUserId(userId);
+            log.info("User: " + userId + " numbers: " + listOfNumbers);
+            for (String num : listOfNumbers) {
+                if (numberRepository.existsByNumber(num)) {
+                    log.info("num -> " + num);
+                    execute(new SendMessage(String.valueOf(userId), "Number " + num + " is available now."));
+                }
+            }
+        }
     }
 
 
@@ -155,13 +143,4 @@ public class BotService extends TelegramLongPollingBot {
         }
     }
 
-    private void softDeleteCarNumber() {
-        List<CarNumber> exist = (ArrayList<CarNumber>) numberRepository.findAll();
-        if (exist.isEmpty()) {
-            return;
-        }
-        exist.forEach(car -> car.setDeleted(true));
-        numberRepository.saveAll(exist);
-        log.info("Deleted " + exist.size() + " numbers.");
-    }
 }

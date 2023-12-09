@@ -4,7 +4,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -68,5 +71,26 @@ public class ChasingNumber {
         return "ChasingNumber{" +
                 "number='" + number + '\'' +
                 '}';
+    }
+
+    public class ChasingUserNumber {
+        private Long userId;
+        private List<String> numbers;
+
+        public Long getUserId() {
+            return userId;
+        }
+
+        public void setUserId(Long userId) {
+            this.userId = userId;
+        }
+
+        public List<String> getNumbers() {
+            return numbers;
+        }
+
+        public void setNumbers(List<String> numbers) {
+            this.numbers = numbers;
+        }
     }
 }

@@ -36,10 +36,11 @@ public class WriteNumberHandler extends UserRequestHandler {
         return false;
     }
 
+    //Check if set number is available. If yes -> info message; if not -> added to db this number(chasing_number)
     @Override
     public void handle(UserRequest request) {
-        boolean exist = carNumberRepository.existsByNumber(request.getUpdate().getMessage().getText());
         ReplyKeyboard replyKeyboard = keyboardHelper.chasingNumberButton();
+        boolean exist = carNumberRepository.existsByNumber(request.getUpdate().getMessage().getText());
         if (exist) {
             telegramService.sendMessage(request.getChatId(),
                     "Цей номер зараз доступний для замовлення. Мерщій в ЕК водія!");

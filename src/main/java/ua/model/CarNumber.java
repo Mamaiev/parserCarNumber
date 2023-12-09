@@ -17,9 +17,9 @@ public class CarNumber {
     private String number;
     private Integer price;
     private String serviceCenter;
-    private LocalDateTime added;
-    private LocalDateTime changed;
-    private boolean deleted;
+//    private LocalDateTime added;
+//    private LocalDateTime changed;
+//    private boolean deleted;
 
     public Integer getId() {
         return id;
@@ -53,29 +53,29 @@ public class CarNumber {
         this.serviceCenter = serviceCenter;
     }
 
-    public LocalDateTime getAdded() {
-        return added;
-    }
-
-    public void setAdded(LocalDateTime added) {
-        this.added = added;
-    }
-
-    public LocalDateTime getChanged() {
-        return changed;
-    }
-
-    public void setChanged(LocalDateTime changed) {
-        this.changed = changed;
-    }
-
-    public boolean isDeleted() {
-        return deleted;
-    }
-
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
-    }
+//    public LocalDateTime getAdded() {
+//        return added;
+//    }
+//
+//    public void setAdded(LocalDateTime added) {
+//        this.added = added;
+//    }
+//
+//    public LocalDateTime getChanged() {
+//        return changed;
+//    }
+//
+//    public void setChanged(LocalDateTime changed) {
+//        this.changed = changed;
+//    }
+//
+//    public boolean isDeleted() {
+//        return deleted;
+//    }
+//
+//    public void setDeleted(boolean deleted) {
+//        this.deleted = deleted;
+//    }
 
     @Override
     public boolean equals(Object o) {

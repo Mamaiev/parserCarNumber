@@ -61,7 +61,7 @@ public class ParserSiteService {
                     number.setNumber(temp.get(0).text());
                     number.setPrice(Integer.valueOf(temp.get(1).text()));
                     number.setServiceCenter(temp.get(2).text());
-                    number.setAdded(LocalDateTime.now());
+//                    number.setAdded(LocalDateTime.now());
                     carNumbers.add(number);
                 } catch (IndexOutOfBoundsException e) {
                     System.out.println("Number " + temp.text() + " doesn't have data.");
