@@ -35,7 +35,7 @@ public class ErrorWritingHandler extends UserRequestHandler {
 
     @Override
     public int priority() {
-        return 3;
+        return 4;
     }
 
 }

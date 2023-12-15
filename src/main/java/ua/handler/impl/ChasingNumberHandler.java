@@ -9,7 +9,7 @@ import ua.model.ChasingNumber;
 import ua.model.UserRequest;
 import ua.service.TelegramService;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,11 +28,12 @@ public class ChasingNumberHandler extends UserRequestHandler {
     @Override
     public boolean isApplicable(UserRequest request) {
         if (isTextMessage(request.getUpdate())) {
-            return isSameTextMessage(request.getUpdate(), "Номера що вже відслідковуються мною");
+            return isSameTextMessage(request.getUpdate(), "Номера що вже відслідковуються мною") ;
         }
         return false;
     }
 
+    //TODO need add removing number from listOfChasing
     @Override
     public void handle(UserRequest dispatchRequest) {
         List<ChasingNumber> listOfNumber = repository.findByUserId(dispatchRequest.getUpdate().getMessage().getFrom().getId());
@@ -42,6 +43,7 @@ public class ChasingNumberHandler extends UserRequestHandler {
         ReplyKeyboard replyKeyboard = keyboardHelper.chasingNumberButton();
         telegramService.sendMessage(dispatchRequest.getChatId(),
                 "Введи номер який тебе цікавить ⤵️", replyKeyboard);
+
     }
 
     @Override

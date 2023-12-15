@@ -2,9 +2,11 @@ package ua;
 
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 @Service
@@ -15,16 +17,18 @@ public class KeyboardHelper {
 //                .stream(Region.values())
 //                .map(s -> new KeyboardButton(s.name()))
 //                .collect(Collectors.toCollection(KeyboardRow::new));
-
+        KeyboardRow row1 = new KeyboardRow();
+        KeyboardButton button1 = new KeyboardButton("Видалити номер з відслідковуваних");
         KeyboardRow row2 = new KeyboardRow();
         KeyboardButton button2 = new KeyboardButton("Номера що вже відслідковуються мною");
-
+        row1.add(button1);
         row2.add(button2);
 
+
         return ReplyKeyboardMarkup.builder()
-                .keyboard(Collections.singleton(row2))
-                .resizeKeyboard(false) // need fix displaying button on iPad/iPhone
-                .oneTimeKeyboard(false)
+                .keyboard(Arrays.asList(row1, row2))
+                .resizeKeyboard(true) // need fix displaying button on iPad/iPhone
+                .oneTimeKeyboard(true)
                 .build();
     }
 

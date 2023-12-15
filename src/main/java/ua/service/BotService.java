@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
@@ -48,7 +50,7 @@ public class BotService extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        SendMessage message = new SendMessage();
+        SendMessage sendMessage = new SendMessage();
         if (update.hasMessage() && update.getMessage().hasText()) {
             Long chatId = update.getMessage().getChatId();
             String inputText = update.getMessage().getText();
@@ -69,9 +71,16 @@ public class BotService extends TelegramLongPollingBot {
             }
         } else if (update.hasCallbackQuery()) {
             try {
-                message.setText(update.getCallbackQuery().getData());
-                message.setChatId(update.getCallbackQuery().getMessage().getChatId());
-                execute(message);
+                CallbackQuery callback = update.getCallbackQuery();
+                Message message = callback.getMessage();
+                if (message.getText().equals("Вибери номер який за яким не хочеш більше слідкувати️")) {
+                    Long chatId = message.getChatId();
+                    String number = callback.getData();
+                    chasingNumberRepository.deleteChasingNumberByChatIdAndNumber(chatId, number);
+                    sendMessage.setText(callback.getData() + " був видалений.");
+                }
+                sendMessage.setChatId(message.getChatId());
+                execute(sendMessage);
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
