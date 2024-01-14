@@ -21,12 +21,15 @@ public class KeyboardHelper {
         KeyboardButton button1 = new KeyboardButton("Видалити номер з відслідковуваних");
         KeyboardRow row2 = new KeyboardRow();
         KeyboardButton button2 = new KeyboardButton("Номера що вже відслідковуються мною");
+        KeyboardRow row3 = new KeyboardRow();
+        KeyboardButton button3 = new KeyboardButton("Статус синхронізації");
         row1.add(button1);
         row2.add(button2);
+        row3.add(button3);
 
 
         return ReplyKeyboardMarkup.builder()
-                .keyboard(Arrays.asList(row1, row2))
+                .keyboard(Arrays.asList(row1, row2, row3))
                 .resizeKeyboard(true) // need fix displaying button on iPad/iPhone
                 .oneTimeKeyboard(true)
                 .build();

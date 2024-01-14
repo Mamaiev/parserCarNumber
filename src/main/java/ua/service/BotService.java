@@ -2,6 +2,7 @@ package ua.service;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -54,7 +55,7 @@ public class BotService extends TelegramLongPollingBot {
         if (update.hasMessage() && update.getMessage().hasText()) {
             Long chatId = update.getMessage().getChatId();
             String inputText = update.getMessage().getText();
-            if (inputText.equals("cu")) {
+            if (inputText.equals("sync")) {
                 try {
                     process();
                 } catch (TelegramApiException e) {
@@ -94,7 +95,7 @@ public class BotService extends TelegramLongPollingBot {
 //        return null;
 //    }
 
-    //    @Scheduled(cron = "58 8/11 * * * *") //for prod
+        @Scheduled(cron = "05 5 1/1 * * *") //for prod
 //    @Scheduled(cron = "1/1 * * * * *") //for test
     private void process() throws TelegramApiException {
         update();
@@ -108,10 +109,12 @@ public class BotService extends TelegramLongPollingBot {
         synchronize.setSynchronizeTime(LocalDateTime.now());
         try {
             List<CarNumber> listOfNumbers = parserSiteService.pullNumbers();
-            numberRepository.findAll();
+            if (!listOfNumbers.isEmpty()) {
+                numberRepository.deleteAll();
+            }
             numberRepository.saveAll(listOfNumbers); // change signature of method
             synchronize.setSuccess(true);
-            log.info("Time of processing: " + Duration.between(start, Instant.now()).getSeconds() + " \n"
+            log.info("Time of processing: " + Duration.between(start, Instant.now()).getSeconds() + "s \n"
                     + "Processed " + listOfNumbers.size() + " car numbers");
         } catch (IOException e) {
             synchronize.setSuccess(false);

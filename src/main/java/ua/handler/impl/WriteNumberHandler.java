@@ -44,15 +44,13 @@ public class WriteNumberHandler extends UserRequestHandler {
         if (exist) {
             telegramService.sendMessage(request.getChatId(),
                     "Цей номер зараз доступний для замовлення. Мерщій в ЕК водія!");
-            telegramService.sendMessage(request.getChatId(),
-                    "Введи ще номер який тебе цікавить ⤵️", replyKeyboard);
         } else {
             saveNumber(request);
             telegramService.sendMessage(request.getChatId(),
                     "Як буде доступним номер бот напише.️");
-            telegramService.sendMessage(request.getChatId(),
-                    "Введи ще номер який тебе цікавить ⤵️", replyKeyboard);
         }
+        telegramService.sendMessage(request.getChatId(),
+                "Введи ще номер який тебе цікавить ⤵️", replyKeyboard);
     }
 
     @Override

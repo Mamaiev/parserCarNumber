@@ -32,10 +32,10 @@ public class ErrorWritingHandler extends UserRequestHandler {
                         "АА7777АА де АА - будь яка латинська буква\n" +
                         "7777 - будь які чотири цифри крім 0000", replyKeyboard);
     }
-
+    // 100 because it is error answer. Run when another answer is not compliant other answers.
     @Override
     public int priority() {
-        return 4;
+        return 100;
     }
 
 }
