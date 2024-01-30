@@ -24,9 +24,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class BotService extends TelegramLongPollingBot {
@@ -34,11 +32,11 @@ public class BotService extends TelegramLongPollingBot {
     private Log log = LogFactory.getLog(ParserSiteService.class);
 
     private final BotConfig botConfig;
-    private ParserSiteService parserSiteService;
-    private CarNumberRepository numberRepository;
-    private SynchronizeRepository synchronizeRepository;
+    private final ParserSiteService parserSiteService;
+    private final CarNumberRepository numberRepository;
+    private final SynchronizeRepository synchronizeRepository;
     private final ChasingNumberRepository chasingNumberRepository;
-    private Dispatcher dispatcher;
+    private final Dispatcher dispatcher;
 
     public BotService(BotConfig botConfig, ParserSiteService parserSiteService, CarNumberRepository numberRepository, SynchronizeRepository synchronizeRepository, ChasingNumberRepository chasingNumberRepository, Dispatcher dispatcher) {
         super(botConfig.getBotToken());
@@ -114,6 +112,7 @@ public class BotService extends TelegramLongPollingBot {
             if (!listOfNumbers.isEmpty()) {
                 numberRepository.deleteAll();
             }
+            transliteration(listOfNumbers);
             numberRepository.saveAll(listOfNumbers); // change signature of method
             synchronize.setSuccess(true);
             log.info("Time of processing: " + Duration.between(start, Instant.now()).getSeconds() + "s \n"
@@ -121,6 +120,7 @@ public class BotService extends TelegramLongPollingBot {
         } catch (IOException e) {
             synchronize.setSuccess(false);
             e.printStackTrace();
+            //TODO send message in telegram about error
         } finally {
             synchronizeRepository.save(synchronize);
         }
@@ -134,7 +134,7 @@ public class BotService extends TelegramLongPollingBot {
             listOfNumbers = chasingNumberRepository.findNumberByUserId(userId);
             log.info("User: " + userId + " numbers: " + listOfNumbers);
             for (String num : listOfNumbers) {
-                if (numberRepository.existsByNumber(num)) {
+                if (numberRepository.existsByNumberContaining(num)) {
                     log.info("num -> " + num);
                     execute(new SendMessage(String.valueOf(userId), "Number " + num + " is available now."));
                 }
@@ -142,33 +142,33 @@ public class BotService extends TelegramLongPollingBot {
         }
     }
 
-    private static List<CarNumber> transliteration(List<CarNumber> list) {
-        list.forEach(car -> {
-            car.setNumber(Arrays.stream(car.getNumber().split(".")).map(BotService::change).collect(Collectors.joining()));
-        });
+    public List<CarNumber> transliteration(List<CarNumber> list) {
+        StringBuilder word = new StringBuilder();
+        for (CarNumber car : list) {
+            char[] array = car.getNumber().toUpperCase().toCharArray();
+            for (char c : array) {
+                word.append(change(c));
+            }
+            car.setNumber(word.toString());
+            word.delete(0, word.length());
+        }
         return list;
     }
 
-    public static void main(String[] args) {
-        CarNumber car = new CarNumber();
-        car.setNumber("КА3333ТЕ");
-        System.out.println(transliteration(Arrays.asList(car)));
-    }
-
-    private static String change(String input) {
-        return switch (input.toUpperCase()) {
-            case "А" -> "A";
-            case "В" -> "B";
-            case "С" -> "C";
-            case "Е" -> "E";
-            case "Н" -> "H";
-            case "І" -> "I";
-            case "К" -> "K";
-            case "М" -> "M";
-            case "О" -> "O";
-            case "Р" -> "P";
-            case "Т" -> "T";
-            default -> input;
+    private String change(char input) {
+        return switch (input) {
+            case 'А' -> "A";
+            case 'В' -> "B";
+            case 'С' -> "C";
+            case 'Е' -> "E";
+            case 'Н' -> "H";
+            case 'І' -> "I";
+            case 'К' -> "K";
+            case 'М' -> "M";
+            case 'О' -> "O";
+            case 'Р' -> "P";
+            case 'Т' -> "T";
+            default -> String.valueOf(input);
         };
     }
 

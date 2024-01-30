@@ -19,4 +19,6 @@ public interface CarNumberRepository extends CrudRepository<CarNumber, Integer> 
     List<CarNumber> checkNumberByLike(String text);
 
     CarNumber findByNumberContaining(String number);
+
+    boolean existsByNumberContaining(String number);
 }

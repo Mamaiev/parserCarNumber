@@ -95,4 +95,14 @@ public class CarNumber {
                 && this.getPrice().equals(car.getPrice())
                 && this.getServiceCenter().equals(car.getServiceCenter());
     }
+
+    @Override
+    public String toString() {
+        return "CarNumber{" +
+                "id=" + id +
+                ", number='" + number + '\'' +
+                ", price=" + price +
+                ", serviceCenter='" + serviceCenter + '\'' +
+                '}';
+    }
 }
