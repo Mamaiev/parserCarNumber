@@ -24,7 +24,9 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BotService extends TelegramLongPollingBot {
@@ -95,7 +97,7 @@ public class BotService extends TelegramLongPollingBot {
 //        return null;
 //    }
 
-        @Scheduled(cron = "05 5 1/1 * * *") //for prod
+    @Scheduled(cron = "05 5 1/1 * * *") //for prod
 //    @Scheduled(cron = "1/1 * * * * *") //for test
     private void process() throws TelegramApiException {
         update();
@@ -138,6 +140,36 @@ public class BotService extends TelegramLongPollingBot {
                 }
             }
         }
+    }
+
+    private static List<CarNumber> transliteration(List<CarNumber> list) {
+        list.forEach(car -> {
+            car.setNumber(Arrays.stream(car.getNumber().split(".")).map(BotService::change).collect(Collectors.joining()));
+        });
+        return list;
+    }
+
+    public static void main(String[] args) {
+        CarNumber car = new CarNumber();
+        car.setNumber("КА3333ТЕ");
+        System.out.println(transliteration(Arrays.asList(car)));
+    }
+
+    private static String change(String input) {
+        return switch (input.toUpperCase()) {
+            case "А" -> "A";
+            case "В" -> "B";
+            case "С" -> "C";
+            case "Е" -> "E";
+            case "Н" -> "H";
+            case "І" -> "I";
+            case "К" -> "K";
+            case "М" -> "M";
+            case "О" -> "O";
+            case "Р" -> "P";
+            case "Т" -> "T";
+            default -> input;
+        };
     }
 
 

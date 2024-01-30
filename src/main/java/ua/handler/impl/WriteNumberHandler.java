@@ -50,7 +50,7 @@ public class WriteNumberHandler extends UserRequestHandler {
                     "Як буде доступним номер бот напише.️");
         }
         telegramService.sendMessage(request.getChatId(),
-                "Введи ще номер який тебе цікавить ⤵️", replyKeyboard);
+                "Введи номер(латинецею) який тебе цікавить ⤵️", replyKeyboard);
     }
 
     @Override

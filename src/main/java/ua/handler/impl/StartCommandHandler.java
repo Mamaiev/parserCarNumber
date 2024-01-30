@@ -31,7 +31,7 @@ public class StartCommandHandler extends UserRequestHandler {
         telegramService.sendMessage(request.getChatId(),
                 "\uD83D\uDC4BПривіт! За допомогою цього чат-бота ви зможете встановити нагадування на появу цікавого вам автономера!");
         telegramService.sendMessage(request.getChatId(),
-                "Введи номер який тебе цікавить ⤵️", replyKeyboard);
+                "Введи номер(латинецею) який тебе цікавить ⤵️", replyKeyboard);
     }
 
     @Override

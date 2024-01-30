@@ -46,7 +46,7 @@ public class InfoSynchronizationHandler extends UserRequestHandler {
 
         ReplyKeyboard replyKeyboard = keyboardHelper.chasingNumberButton();
         telegramService.sendMessage(dispatchRequest.getChatId(),
-                "Введи номер який тебе цікавить ⤵️", replyKeyboard);
+                "Введи номер(латинецею) який тебе цікавить ⤵️", replyKeyboard);
     }
 
     @Override

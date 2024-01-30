@@ -33,7 +33,6 @@ public class ChasingNumberHandler extends UserRequestHandler {
         return false;
     }
 
-    //TODO need add removing number from listOfChasing
     @Override
     public void handle(UserRequest dispatchRequest) {
         List<ChasingNumber> listOfNumber = repository.findByUserId(dispatchRequest.getUpdate().getMessage().getFrom().getId());
@@ -42,7 +41,7 @@ public class ChasingNumberHandler extends UserRequestHandler {
                 + listOfNumber.stream().map(s -> s.getNumber() + "\n").collect(Collectors.joining()));
         ReplyKeyboard replyKeyboard = keyboardHelper.chasingNumberButton();
         telegramService.sendMessage(dispatchRequest.getChatId(),
-                "Введи номер який тебе цікавить ⤵️", replyKeyboard);
+                "Введи номер(латинецею) який тебе цікавить ⤵️", replyKeyboard);
 
     }
 
