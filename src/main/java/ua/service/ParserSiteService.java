@@ -22,7 +22,7 @@ public class ParserSiteService {
 
     public List<CarNumber> pullNumbers() throws IOException {
         Connection.Response site = parseSite();
-        log.info(site.statusMessage() + site.statusCode());
+        log.info(site.statusMessage() + site.statusCode()); //TODO if get timeout or 504 error I guess we next code doesn't work. Will be generate exception
         if (site.statusCode() == 504) {
             log.error("Error on server side. Status code 504. " + site.statusMessage());
             return Collections.emptyList();
@@ -75,7 +75,7 @@ public class ParserSiteService {
     private void checkStatusCode(Connection.Response response) {
         response.statusCode();
     }
-
+    //only for test
     private List<CarNumber> parseSiteTest(String str) {
         Document doc = null;
         try {
