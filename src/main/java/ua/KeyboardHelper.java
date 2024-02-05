@@ -59,13 +59,21 @@ public class KeyboardHelper {
                 .build();
     }
 
-    public boolean validateNumber(String number) {
+    public boolean validateFullNumber(String number) {
         if (number.length() == 8) {
             if (number.substring(0, 2).matches("\\D{2}")
                     && number.substring(2, 6).matches("\\d{4}")
                     && number.substring(6, 8).matches("\\D{2}")) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    public boolean validatePartNumber(String number) {
+        if (number.length() <= 8) {
+            //TODO add condition when couldn't be more then 2 letters consecutive, more then 4 numbers consecutive
+            return true;
         }
         return false;
     }

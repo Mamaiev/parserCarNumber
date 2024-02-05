@@ -10,9 +10,12 @@ import ua.KeyboardHelper;
 import ua.db.CarNumberRepository;
 import ua.db.ChasingNumberRepository;
 import ua.handler.UserRequestHandler;
+import ua.model.CarNumber;
 import ua.model.ChasingNumber;
 import ua.model.UserRequest;
 import ua.service.TelegramService;
+
+import java.util.List;
 
 @Service
 public class WriteNumberHandler extends UserRequestHandler {
@@ -34,7 +37,7 @@ public class WriteNumberHandler extends UserRequestHandler {
     public boolean isApplicable(UserRequest request) {
         if (isTextMessage(request.getUpdate()) && !isSameTextMessage(request.getUpdate(), "Номера що вже відслідковуються мною")) {
             String text = request.getUpdate().getMessage().getText();
-            if (keyboardHelper.validateNumber(text)) {
+            if (keyboardHelper.validatePartNumber(text)) {
                 return true;
             }
         }
@@ -45,10 +48,13 @@ public class WriteNumberHandler extends UserRequestHandler {
     @Override
     public void handle(UserRequest request) {
         ReplyKeyboard replyKeyboard = keyboardHelper.chasingNumberButton();
-        boolean exist = carNumberRepository.existsByNumberContaining(request.getUpdate().getMessage().getText());
+        String text = request.getUpdate().getMessage().getText();
+        boolean exist = carNumberRepository.existsByNumberContaining(text);
         if (exist) {
+            String string = transliteration(text);
+            List<CarNumber> listExistNumber = carNumberRepository.checkNumberByLike(string);
             telegramService.sendMessage(request.getChatId(),
-                    "Цей номер зараз доступний для замовлення. Мерщій в ЕК водія!");
+                    listExistNumber.stream().map(s -> s.getNumber() + "\n").toList() + " номер(и) зараз доступний для замовлення. Мерщій в ЕК водія!");
         } else {
             try {
                 saveNumber(request);

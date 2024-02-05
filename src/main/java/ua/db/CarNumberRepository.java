@@ -15,10 +15,10 @@ public interface CarNumberRepository extends CrudRepository<CarNumber, Integer> 
     @Query("select count(car.id) from CarNumber car")
     long size();
 
-    @Query("select car from CarNumber car where car.number like '%?1%'")
+    @Query("select car from CarNumber car where car.number like %?1%")
     List<CarNumber> checkNumberByLike(String text);
 
-    CarNumber findByNumberContaining(String number);
+//    CarNumber findByNumberContaining(String number);
 
     boolean existsByNumberContaining(String number);
 }

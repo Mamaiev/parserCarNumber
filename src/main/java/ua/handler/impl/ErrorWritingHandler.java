@@ -21,7 +21,7 @@ public class ErrorWritingHandler extends UserRequestHandler {
 
     @Override
     public boolean isApplicable(UserRequest request) {
-        return isTextMessage(request.getUpdate()) && !keyboardHelper.validateNumber(request.getUpdate().getMessage().getText());
+        return isTextMessage(request.getUpdate());
     }
 
     @Override
